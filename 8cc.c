@@ -14,22 +14,59 @@ void error(char *fmt, ...) {
   exit(1);
 }
 
-void compile_number(int n) {
+void skip_space(void) {
   int c;
   while ((c = getc(stdin)) != EOF) {
     if (isspace(c))
-      break;
-    if (!isdigit(c))
-      error("Invalid character in number: '%c'", c);
+      continue;
+    ungetc(c, stdin);
+    return;
+  }
+}
+
+int read_number(int n) {
+  int c;
+  while ((c = getc(stdin)) != EOF) {
+    if (!isdigit(c)) {
+      ungetc(c, stdin);
+      return n;
+    }
     n = n * 10 + (c - '0');
   }
+}
+
+/* オペレーターとその引数の数字で、計算式にする。オペレーター出なかった場合は、そのままreturnする */
+void compile_expr2(void) {
+  for (;;) {
+    skip_space();
+    int c = getc(stdin);
+    if (c == EOF) {
+      printf("ret\n");
+      exit(0);
+    }
+    char *op;
+    if (c == '+') op = "add";
+    else if (c == '-') op = "sub";
+    else error("Operator expected, but got '%c'", c);
+    skip_space();
+    c = getc(stdin);
+    if (!isdigit(c))
+      error("Number expected, but got '%c'", c);
+    printf("%s $%d, %%rax\n\t", op, read_number(c - '0'));
+  }
+}
+
+/* 式をコンパイルする。式は <数字1> <オペレータ> <数字2> というような形式になる前提があって、この関数では最初の数字1のみを処理し、あとのオプショナルな2つをexpr2に任せる。  */
+void compile_expr(int n) {
+  n = read_number(n);
   printf(".text\n\t"
          ".global intfn\n"
          "intfn:\n\t"
-         "mov $%d, %%rax\n\t"
-         "ret\n", n);
+         "mov $%d, %%rax\n\t", n);
+  compile_expr2();
 }
 
+/* 文字列は、ダブルクォートで囲われたもの */
 void compile_string(void) {
   char buf[BUFLEN];
   int i = 0;
@@ -56,15 +93,17 @@ void compile_string(void) {
          "stringfn:\n\t"
          "lea .mydata(%%rip), %%rax\n\t"
          "ret\n", buf);
+  exit(0);
 }
 
 void compile(void) {
   int c = getc(stdin);
   if (isdigit(c))
-    return compile_number(c - '0');
-  if (c == '"')
+    compile_expr(c - '0');
+  else if (c == '"')
     return compile_string();
-  error("Don't know how to handle '%c'", c);
+  else
+    error("Don't know how to handle '%c'", c);
 }
 
 int main(int argc, char **argv) {
