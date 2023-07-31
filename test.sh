@@ -47,6 +47,9 @@ make -s 8cc
 
 testast '1' '1'
 testast '(+ (- (+ 1 2) 3) 4)' '1+2-3+4'
+testast '(+ (+ 1 (* 2 3)) 4)' '1+2*3+4'
+testast '(+ (* 1 2) (* 3 4))' '1*2+3*4'
+testast '(/ (/ 24 2) 4)' '24/2/4'
 
 test 0 0
 test abc '"abc"'
@@ -55,6 +58,10 @@ test 3 '1+2'
 test 3 '1 + 2'
 test 10 '1+2+3+4'
 test 4 '1+2-3+4'
+test 11 '1+2*3+4'
+test 14 '1*2+3*4'
+test 4 '4/2+6/3'
+test 3 '24/2/4'
 
 testfail '"abc'
 testfail '0abc'
