@@ -1,3 +1,5 @@
+CFLAGS=-Wall -std=gnu99
+
 8cc: 8cc.o
 
 clean:
