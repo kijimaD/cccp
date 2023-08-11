@@ -21,6 +21,7 @@ static Token *make_strtok(String *s) {
   return r;
 }
 
+// 演算子トークンを作成する
 static Token *make_punct(char punct) {
   Token *r = malloc(sizeof(Token));
   r->type = TTYPE_PUNCT;
@@ -42,14 +43,15 @@ static Token *make_char(char c) {
   return r;
 }
 
-static void skip_space(void) {
+// 次の文字を取得する。空白はスキップする
+static int getc_nonspace(void) {
   int c;
   while ((c = getc(stdin)) != EOF) {
-    if (isspace(c))
+    if (isspace(c) || c == '\n' || c == '\r')
       continue;
-    ungetc(c, stdin);
-    return;
+    return c;
   }
+  return EOF;
 }
 
 static Token *read_number(char c) {
@@ -112,8 +114,7 @@ static Token *read_ident(char c) {
 }
 
 static Token *read_token_int(void) {
-  skip_space();
-  int c = getc(stdin);
+  int c = getc_nonspace();
   switch (c) {
   case '0': case '1': case '2': case '3': case '4':
   case '5': case '6': case '7': case '8': case '9':
@@ -176,6 +177,13 @@ void unget_token(Token *tok) {
   if (ungotten)
     error("Push back buffer is already full");
   ungotten = tok;
+}
+
+// 次のトークンを見る。トークンを進めて確認したあと位置を戻す
+Token *peek_token(void) {
+  Token *tok = read_token();
+  unget_token(tok);
+  return tok;
 }
 
 Token *read_token(void) {

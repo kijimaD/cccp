@@ -11,12 +11,13 @@ enum {
   TTYPE_STRING,
 };
 
+// トークン
 typedef struct {
   int type;
   union {
     int ival;
-    char *sval;
-    char punct;
+    char *sval; // 値
+    char punct; // 演算子
     char c;
   };
 } Token;
