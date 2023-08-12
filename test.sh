@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# C言語では、main関数が返した値がプログラム全体としての終了コードになる。終了コードはシェルの$?変数に格納されているので、確認できる。
+
 function compile {
   echo "$1" | ./8cc > tmp.s
   if [ $? -ne 0 ]; then
